@@ -1,0 +1,24 @@
+{
+  "name": "shopsphere-qe-demo",
+  "version": "1.0.0",
+  "description": "ShopSphere QE Demo E-Commerce Platform",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "seed": "cd backend && node src/utils/seed.js"
+  },
+  "keywords": [
+    "ecommerce",
+    "demo",
+    "qa",
+    "testing"
+  ],
+  "author": "QE Automation Initiative",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
