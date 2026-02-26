@@ -1,132 +1,96 @@
-import React, { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import './LoginPage.css';
+import { useToast } from '../context/ToastContext';
 
-const LoginPage = () => {
-  const [searchParams] = useSearchParams();
+export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState('');
+  const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const [error, setError] = useState('');
   const { login } = useAuth();
+  const { addToast } = useToast();
   const navigate = useNavigate();
-  const redirect = searchParams.get('redirect') || '/';
 
-  // BUG-F06: Password field flashes plain text when toggling show password
-  const handleTogglePassword = () => {
-    // BUG-F06: The input type changes immediately, causing a flash of plain text
-    // before the new render. In real scenario, this would be visible for ~200ms
-    setShowPassword(!showPassword);
+  // BUG-F06: When toggling show password, input briefly flashes type="text" before React can update
+  // The bug: we unmount/remount the input instead of just changing the type attribute
+  const toggleShowPassword = () => {
+    setShowPass(prev => {
+      // BUG-F06: forces a remount by setting to opposite value with a forced re-render trick
+      return !prev;
+    });
+    // Artificial delay that causes the DOM to briefly show plain text
+    // In real implementations, this would be synchronous — but this creates the flash bug
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
-    const result = await login(email, password);
-    
-    if (result.success) {
-      navigate(redirect);
-    } else {
-      setError(result.error);
+    try {
+      await login(email, password);
+      addToast('Welcome back!', 'success');
+      navigate('/');
+    } catch (err) {
+      setError('Invalid email or password. Try john@example.com / password123');
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
-    <div className="login-page">
-      <div className="container">
-        <div className="login-box">
-          <h1>Login</h1>
-          <p className="login-subtitle">Welcome back! Please login to your account.</p>
+    <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ width: '100%', maxWidth: 400 }}>
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <Link to="/" style={{ font: '700 1.6rem var(--font-display)', color: 'var(--accent)' }}>ShopSphere</Link>
+          <h1 style={{ fontSize: '1.4rem', marginTop: 12, marginBottom: 8 }}>Sign in to your account</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Don't have an account? <Link to="/register" style={{ color: 'var(--accent)', fontWeight: 600 }}>Sign up</Link></p>
+        </div>
 
-          {error && (
-            <div className="error-message">{error}</div>
-          )}
+        <div className="card" style={{ padding: 32 }}>
+          {error && <div style={{ background: 'var(--danger-bg)', color: 'var(--danger)', padding: '12px 16px', borderRadius: 8, fontSize: 14, marginBottom: 20 }}>{error}</div>}
 
-          <form onSubmit={handleSubmit} className="login-form">
+          <form id="login-form" onSubmit={handleSubmit}>
             <div className="form-group">
-              <label htmlFor="email">Email Address</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="your@email.com"
-              />
+              <label className="form-label">Email Address</label>
+              <input name="email" type="email" className="form-input" value={email} onChange={e => setEmail(e.target.value)} required placeholder="you@example.com" autoComplete="email" />
             </div>
-
             <div className="form-group">
-              <label htmlFor="password">Password</label>
-              <div className="password-input-wrapper">
+              <label className="form-label">Password</label>
+              <div style={{ position: 'relative' }}>
+                {/* BUG-F06: Using key= to force remount causes brief flash of plain text */}
                 <input
-                  type={showPassword ? 'text' : 'password'}
-                  id="password"
+                  key={showPass ? 'text' : 'pass'}
                   name="password"
+                  type={showPass ? 'text' : 'password'}
+                  className="form-input"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={e => setPassword(e.target.value)}
                   required
-                  placeholder="Enter your password"
+                  placeholder="Enter password"
+                  style={{ paddingRight: 44, width: '100%' }}
+                  autoComplete="current-password"
                 />
-                <button
-                  type="button"
-                  onClick={handleTogglePassword}
-                  className="toggle-password-btn"
-                  aria-label="Toggle password visibility"
-                >
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                <button type="button" onClick={toggleShowPassword} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', color: 'var(--text-muted)' }} aria-label="Toggle password visibility">
+                  {showPass ? '🙈' : '👁️'}
                 </button>
               </div>
             </div>
-
-            <div className="form-options">
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-                <span>Remember me</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, cursor: 'pointer' }}>
+                <input type="checkbox" name="remember-me" /> Remember me
               </label>
-              <Link to="/forgot-password" className="forgot-password-link">
-                Forgot Password?
-              </Link>
+              <Link to="/forgot-password" style={{ fontSize: 14, color: 'var(--accent)' }}>Forgot password?</Link>
             </div>
-
-            <button
-              type="submit"
-              className="login-btn"
-              data-testid="login-submit"
-              disabled={loading}
-            >
-              {loading ? 'Logging in...' : 'Login'}
+            <button data-testid="login-submit" type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }} disabled={loading}>
+              {loading ? 'Signing in…' : 'Sign In'}
             </button>
           </form>
-
-          <div className="login-footer">
-            <p>
-              Don't have an account?{' '}
-              <Link to="/register" className="register-link">Register here</Link>
-            </p>
-          </div>
-
-          <div className="demo-credentials">
-            <p><strong>Demo Account:</strong></p>
-            <p>Email: john.doe@example.com</p>
-            <p>Password: password123</p>
-          </div>
         </div>
+
+        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: 'var(--text-muted)' }}>Demo: john@example.com / password123</p>
       </div>
     </div>
   );
-};
-
-export default LoginPage;
+}

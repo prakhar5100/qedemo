@@ -1,118 +1,48 @@
-import React, { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { productsAPI, categoriesAPI } from '../services/api';
+import { getProducts } from '../services/api';
 import ProductCard from '../components/ProductCard';
-import Breadcrumb from '../components/Breadcrumb';
-import Pagination from '../components/Pagination';
-import './CategoryPage.css';
+import { Breadcrumb, FilterSidebar, Pagination } from '../components/UI';
 
-const CategoryPage = () => {
+const CAT_LABELS = { electronics: 'Electronics', apparel: 'Apparel', home: 'Home & Garden', deals: '🏷️ Deals' };
+
+export default function CategoryPage() {
   const { slug } = useParams();
-  const [category, setCategory] = useState(null);
   const [products, setProducts] = useState([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [sortBy, setSortBy] = useState('');
+  const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState({ categories: [], sort: '' });
 
   useEffect(() => {
-    loadCategoryData();
-  }, [slug, currentPage, sortBy]);
+    setLoading(true);
+    const params = { category: slug, page, limit: 12 };
+    if (filters.sort) params.sort = filters.sort;
+    getProducts(params).then(d => { setProducts(d.products); setTotal(d.total); }).catch(console.error).finally(() => setLoading(false));
+  }, [slug, page, filters]);
 
-  const loadCategoryData = async () => {
-    try {
-      setLoading(true);
-      const [categoryRes, productsRes] = await Promise.all([
-        categoriesAPI.getBySlug(slug),
-        productsAPI.getAll({ 
-          category: slug, 
-          page: currentPage,
-          limit: 12,
-          ...(sortBy && { sort: sortBy })
-        })
-      ]);
+  useEffect(() => { setPage(1); }, [slug]);
 
-      setCategory(categoryRes.data.category);
-      setProducts(productsRes.data.products);
-      setTotalPages(productsRes.data.totalPages || 1);
-    } catch (error) {
-      console.error('Failed to load category:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading && !category) {
-    return <div className="loading">Loading category...</div>;
-  }
-
-  const breadcrumbItems = category ? [
-    { label: 'Products', path: '/products' },
-    { label: category.name, path: null }
-  ] : [];
+  const label = CAT_LABELS[slug] || slug;
 
   return (
-    <div className="category-page">
-      <div className="container">
-        <Breadcrumb items={breadcrumbItems} />
-
-        {category && (
-          <div className="category-header">
-            <h1>{category.name}</h1>
-            <p>{category.description}</p>
+    <div className="container" style={{ padding: '32px 24px' }}>
+      <Breadcrumb items={[{ label: 'Home', to: '/' }, { label: 'Products', to: '/products' }, { label }]} />
+      <div style={{ display: 'flex', gap: 40 }}>
+        <FilterSidebar filters={filters} onChange={f => { setFilters(f); setPage(1); }} categories={['electronics', 'apparel', 'home']} />
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem' }}>{label}</h1>
+            <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>{total} products</span>
           </div>
-        )}
-
-        <div className="category-controls">
-          <p className="results-count">
-            {products.length} products
-          </p>
-          <div className="sort-controls">
-            <label>
-              Sort by:
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                data-testid="sort-select"
-              >
-                <option value="">Default</option>
-                <option value="name">Name</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-                <option value="rating">Rating</option>
-              </select>
-            </label>
-          </div>
+          {loading ? <div className="loader"><div className="spinner" /></div> : (
+            <>
+              <div className="product-grid">{products.map(p => <ProductCard key={p.id} product={p} />)}</div>
+              <Pagination page={page} total={total} perPage={12} onPage={setPage} />
+            </>
+          )}
         </div>
-
-        {loading ? (
-          <div className="loading">Loading products...</div>
-        ) : (
-          <>
-            <div className="product-grid" id="product-grid">
-              {products.map(product => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-
-            {products.length === 0 && (
-              <div className="no-results">
-                <p>No products found in this category</p>
-              </div>
-            )}
-
-            {totalPages > 1 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            )}
-          </>
-        )}
       </div>
     </div>
   );
-};
-
-export default CategoryPage;
+}

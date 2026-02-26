@@ -1,86 +1,87 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import { formatPrice } from '../utils/helpers';
 import { useCart } from '../context/CartContext';
-import { useWishlist } from '../context/WishlistContext';
-import StarRating from './StarRating';
-import './ProductCard.css';
+import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
+import { addToWishlist } from '../services/api';
 
-const ProductCard = ({ product }) => {
-  const { addToCart } = useCart();
-  const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
-  const inWishlist = isInWishlist(product.id);
+// BUG-F01: Price formatting breaks for prices > 999 (shows 34999 instead of $349.99)
+function formatPrice(price) {
+  const str = price.toString();
+  // BUG-F01: Removes the decimal point when price > 999 due to faulty string manipulation
+  if (price > 999) {
+    return '$' + str.replace('.', '');
+  }
+  return '$' + price.toFixed(2);
+}
+
+export default function ProductCard({ product }) {
+  const { addItem } = useCart();
+  const { addToast } = useToast();
+  const { isAuth } = useAuth();
 
   const handleAddToCart = async (e) => {
     e.preventDefault();
-    e.stopPropagation();
-    await addToCart(product.id, 1);
+    if (!isAuth) { addToast('Please sign in to add items to cart', 'info'); return; }
+    try {
+      await addItem(product.id);
+      addToast(`${product.name} added to cart!`, 'success');
+    } catch { addToast('Failed to add to cart', 'error'); }
   };
 
-  const handleWishlistToggle = async (e) => {
+  const handleWishlist = async (e) => {
     e.preventDefault();
-    e.stopPropagation();
-    if (inWishlist) {
-      await removeFromWishlist(product.id);
-    } else {
+    if (!isAuth) { addToast('Please sign in to use wishlist', 'info'); return; }
+    try {
       await addToWishlist(product.id);
-    }
+      addToast('Added to wishlist!', 'success');
+    } catch { addToast('Failed to update wishlist', 'error'); }
   };
+
+  const hasDiscount = product.originalPrice > product.price;
 
   return (
-    <div className="product-card" data-testid={`product-card-${product.id}`}>
-      <Link to={`/products/${product.id}`} className="product-card-link">
-        <div className="product-image-container">
-          <img 
-            src={product.images?.[0] || '/placeholder.jpg'} 
-            alt={product.name}
-            className="product-image"
-          />
-          {product.originalPrice > product.price && (
-            <span className="discount-badge">
-              Sale
+    <Link to={`/products/${product.id}`} data-testid={`product-card-${product.id}`} style={{ display: 'block', textDecoration: 'none' }}>
+      <div className="card" style={{ transition: 'box-shadow 0.2s, transform 0.2s', cursor: 'pointer' }}
+        onMouseEnter={e => { e.currentTarget.style.boxShadow = 'var(--shadow-md)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+        onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; e.currentTarget.style.transform = ''; }}>
+        <div style={{ position: 'relative', aspectRatio: '1', overflow: 'hidden', background: 'var(--bg)' }}>
+          <img src={product.images[0]} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          {hasDiscount && (
+            <span style={{ position: 'absolute', top: 10, left: 10, background: 'var(--accent)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 4 }}>
+              SALE
             </span>
           )}
+          <button
+            data-testid={`wishlist-btn-${product.id}`}
+            onClick={handleWishlist}
+            aria-label="Add to wishlist"
+            style={{ position: 'absolute', top: 10, right: 10, background: '#fff', border: 'none', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-sm)', fontSize: 16 }}>
+            ♡
+          </button>
         </div>
-
-        <div className="product-info">
-          <h3 className="product-name">{product.name}</h3>
-          
-          <div className="product-rating">
-            <StarRating rating={product.rating} size="small" />
-            <span className="review-count">({product.reviewCount})</span>
+        <div style={{ padding: '14px 16px' }}>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{product.category}</div>
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{product.name}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 10 }}>
+            <span className="stars">{'★'.repeat(Math.round(product.rating))}</span>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>({product.reviewCount})</span>
           </div>
-
-          <div className="product-price-container">
-            <span className="product-price">{formatPrice(product.price)}</span>
-            {product.originalPrice > product.price && (
-              <span className="product-original-price">
-                {formatPrice(product.originalPrice)}
-              </span>
-            )}
-          </div>
-
-          <div className="product-actions">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              {/* BUG-F01: formatPrice called here — breaks for prices > 999 */}
+              <span style={{ fontSize: 16, fontWeight: 700 }}>{formatPrice(product.price)}</span>
+              {hasDiscount && <span style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'line-through', marginLeft: 6 }}>{formatPrice(product.originalPrice)}</span>}
+            </div>
             <button
-              onClick={handleAddToCart}
-              className="add-to-cart-btn"
               data-testid={`add-to-cart-${product.id}`}
-            >
-              Add to Cart
-            </button>
-            <button
-              onClick={handleWishlistToggle}
-              className={`wishlist-btn ${inWishlist ? 'in-wishlist' : ''}`}
-              aria-label="Add to wishlist"
-              data-testid={`wishlist-toggle-${product.id}`}
-            >
-              {inWishlist ? '❤️' : '🤍'}
+              onClick={handleAddToCart}
+              className="btn btn-primary btn-sm"
+              style={{ padding: '6px 12px', fontSize: 12 }}>
+              Add
             </button>
           </div>
         </div>
-      </Link>
-    </div>
+      </div>
+    </Link>
   );
-};
-
-export default ProductCard;
+}

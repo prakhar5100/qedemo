@@ -1,79 +1,53 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const baseURL = 'https://qedemo.onrender.com/api' || '/api';
+const api = axios.create({ baseURL });
 
-// Create axios instance with default config
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
-
-// Add auth token to requests if available
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('ss_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Products API
-export const productsAPI = {
-  getAll: (params) => api.get('/products', { params }),
-  getById: (id) => api.get(`/products/${id}`),
-  getFeatured: (limit) => api.get('/products/featured', { params: { limit } }),
-  getReviews: (id) => api.get(`/products/${id}/reviews`),
-  submitReview: (id, review) => api.post(`/products/${id}/reviews`, review)
-};
+// Products
+export const getProducts = (params = {}) => api.get('/products', { params }).then(r => r.data);
+export const getProduct = (id) => api.get(`/products/${id}`).then(r => r.data);
+export const getFeaturedProducts = (limit) => api.get('/products/featured', { params: { limit } }).then(r => r.data);
+export const getProductReviews = (id) => api.get(`/products/${id}/reviews`).then(r => r.data);
+export const submitReview = (id, data) => api.post(`/products/${id}/reviews`, data).then(r => r.data);
 
-// Categories API
-export const categoriesAPI = {
-  getAll: () => api.get('/categories'),
-  getBySlug: (slug) => api.get(`/categories/${slug}`)
-};
+// Categories
+export const getCategories = () => api.get('/categories').then(r => r.data);
+export const getCategory = (slug) => api.get(`/categories/${slug}`).then(r => r.data);
 
-// Cart API
-export const cartAPI = {
-  get: () => api.get('/cart'),
-  add: (productId, quantity) => api.post('/cart/add', { productId, quantity }),
-  update: (productId, quantity) => api.put('/cart/update', { productId, quantity }),
-  remove: (productId) => api.delete(`/cart/remove/${productId}`),
-  clear: () => api.delete('/cart/clear')
-};
+// Search
+export const searchProducts = (q) => api.get('/search', { params: { q } }).then(r => r.data);
 
-// Orders API
-export const ordersAPI = {
-  getAll: () => api.get('/orders'),
-  getById: (id) => api.get(`/orders/${id}`),
-  create: (orderData) => api.post('/orders', orderData),
-  track: (id) => api.get(`/orders/${id}/track`)
-};
+// Cart
+export const getCart = () => api.get('/cart').then(r => r.data);
+export const addToCart = (productId, quantity) => api.post('/cart/add', { productId, quantity }).then(r => r.data);
+export const updateCartItem = (productId, quantity) => api.put('/cart/update', { productId, quantity }).then(r => r.data);
+export const removeCartItem = (productId) => api.delete(`/cart/remove/${productId}`).then(r => r.data);
+export const clearCart = () => api.delete('/cart/clear').then(r => r.data);
 
-// Auth API
-export const authAPI = {
-  login: (email, password) => api.post('/auth/login', { email, password }),
-  register: (userData) => api.post('/auth/register', userData),
-  logout: () => api.post('/auth/logout'),
-  getCurrentUser: () => api.get('/auth/me')
-};
+// Orders
+export const getOrders = () => api.get('/orders').then(r => r.data);
+export const getOrder = (id) => api.get(`/orders/${id}`).then(r => r.data);
+export const placeOrder = (data) => api.post('/orders', data).then(r => r.data);
+export const trackOrder = (id) => api.get(`/orders/${id}/track`).then(r => r.data);
 
-// Wishlist API
-export const wishlistAPI = {
-  get: () => api.get('/wishlist'),
-  add: (productId) => api.post('/wishlist/add', { productId }),
-  remove: (productId) => api.delete(`/wishlist/remove/${productId}`)
-};
+// Auth
+export const login = (email, password) => api.post('/auth/login', { email, password }).then(r => r.data);
+export const register = (data) => api.post('/auth/register', data).then(r => r.data);
+export const logout = () => api.post('/auth/logout').then(r => r.data);
+export const getMe = () => api.get('/auth/me').then(r => r.data);
 
-// Search API
-export const searchAPI = {
-  search: (query) => api.get('/search', { params: { q: query } })
-};
+// Wishlist
+export const getWishlist = () => api.get('/wishlist').then(r => r.data);
+export const addToWishlist = (productId) => api.post('/wishlist/add', { productId }).then(r => r.data);
+export const removeFromWishlist = (id) => api.delete(`/wishlist/remove/${id}`).then(r => r.data);
 
-// Contact API
-export const contactAPI = {
-  submit: (message) => api.post('/contact', message)
-};
+// Contact
+export const submitContact = (data) => api.post('/contact', data).then(r => r.data);
 
 export default api;

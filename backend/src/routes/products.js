@@ -1,142 +1,103 @@
 const express = require('express');
 const router = express.Router();
 const store = require('../data/store');
-const { authMiddleware } = require('../middleware/auth');
+const authMiddleware = require('../middleware/auth');
 
-// GET /api/products - List all products with filtering and sorting
-// BUG-B01: Invalid category returns 200 with empty array instead of 400
+const validCategories = ['electronics', 'apparel', 'home', 'deals'];
+
+// GET /api/products
+// BUG-B01: Invalid category returns 200 with [] instead of 400
 router.get('/', (req, res) => {
-  const { category, sort, q, limit = 50, page = 1 } = req.query;
-  
-  let filteredProducts = [...store.products];
+  let { category, sort, q, limit, page } = req.query;
+  let results = [...store.products];
 
-  // Filter by category - BUG-B01: Should return 400 for invalid category
   if (category) {
-    filteredProducts = filteredProducts.filter(p => p.category === category);
-    // Missing validation - should check if category exists
+    // BUG-B01: Should check if category is valid and return 400 if not
+    // Instead, silently returns empty array for unknown categories
+    results = results.filter(p => p.category === category);
   }
 
-  // Search by query
   if (q) {
     const query = q.toLowerCase();
-    filteredProducts = filteredProducts.filter(p => 
+    results = results.filter(p =>
       p.name.toLowerCase().includes(query) ||
       p.description.toLowerCase().includes(query) ||
-      p.tags.some(tag => tag.toLowerCase().includes(query))
+      p.tags.some(t => t.includes(query))
     );
   }
 
-  // Sort products
-  if (sort) {
-    switch (sort) {
-      case 'price-asc':
-        filteredProducts.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-desc':
-        filteredProducts.sort((a, b) => b.price - a.price);
-        break;
-      case 'name':
-        filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case 'rating':
-        filteredProducts.sort((a, b) => b.rating - a.rating);
-        break;
-    }
+  // Handle deals category as discounted products
+  if (category === 'deals') {
+    results = store.products.filter(p => p.price < p.originalPrice);
   }
 
-  // Pagination
-  const pageNum = parseInt(page);
-  const limitNum = parseInt(limit);
-  const startIndex = (pageNum - 1) * limitNum;
-  const endIndex = startIndex + limitNum;
-  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+  if (sort === 'price-asc') results.sort((a, b) => a.price - b.price);
+  else if (sort === 'price-desc') results.sort((a, b) => b.price - a.price);
+  else if (sort === 'rating') results.sort((a, b) => b.rating - a.rating);
+  else if (sort === 'name') results.sort((a, b) => a.name.localeCompare(b.name));
 
-  res.json({
-    products: paginatedProducts,
-    total: filteredProducts.length,
-    page: pageNum,
-    totalPages: Math.ceil(filteredProducts.length / limitNum)
-  });
+  const total = results.length;
+  const pageNum = parseInt(page) || 1;
+  const limitNum = parseInt(limit) || 12;
+  const start = (pageNum - 1) * limitNum;
+  results = results.slice(start, start + limitNum);
+
+  res.json({ products: results, total, page: pageNum });
 });
 
-// GET /api/products/featured - Get featured products
-// BUG-B06: Ignores limit parameter, returns all featured products
+// GET /api/products/featured
+// BUG-B06: limit param is ignored — always returns all featured
 router.get('/featured', (req, res) => {
-  const { limit } = req.query;
-  
-  const featuredProducts = store.products.filter(p => p.featured);
-  
-  // BUG-B06: Should respect limit parameter but doesn't
-  // Should be: featuredProducts.slice(0, parseInt(limit) || 8)
-  res.json({ products: featuredProducts });
+  // BUG-B06: Should respect limit param:
+  // const limitNum = parseInt(req.query.limit) || 8;
+  // const featured = store.products.filter(p => p.featured).slice(0, limitNum);
+  const featured = store.products.filter(p => p.featured); // ignores limit
+  res.json({ products: featured });
 });
 
-// GET /api/products/:id - Get single product
-// BUG-B03: Returns 'productName' instead of 'name' - schema inconsistency
+// GET /api/products/:id
+// BUG-B03: Returns productName instead of name
 router.get('/:id', (req, res) => {
   const product = store.products.find(p => p.id === req.params.id);
-  
-  if (!product) {
-    return res.status(404).json({ error: 'Product not found' });
-  }
+  if (!product) return res.status(404).json({ error: 'Product not found' });
 
-  // BUG-B03: Field name is inconsistent with list endpoint
-  const productData = { ...product };
-  productData.productName = productData.name;
-  delete productData.name;
-
-  res.json({ product: productData });
+  // BUG-B03: Inconsistent field naming — returns productName instead of name
+  const { name, ...rest } = product;
+  res.json({ product: { ...rest, productName: name } });
 });
 
-// GET /api/products/:id/reviews - Get reviews for a product
+// GET /api/products/:id/reviews
 router.get('/:id/reviews', (req, res) => {
-  const productId = req.params.id;
-  const product = store.products.find(p => p.id === productId);
-  
-  if (!product) {
-    return res.status(404).json({ error: 'Product not found' });
-  }
+  const product = store.products.find(p => p.id === req.params.id);
+  if (!product) return res.status(404).json({ error: 'Product not found' });
 
-  // Generate mock reviews
-  const reviewsForProduct = store.reviews[productId] || [];
-  
-  res.json({
-    reviews: reviewsForProduct,
-    averageRating: product.rating,
-    totalReviews: product.reviewCount
-  });
+  const productReviews = store.reviews.filter(r => r.productId === req.params.id);
+  const averageRating = productReviews.length
+    ? productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length
+    : 0;
+
+  res.json({ reviews: productReviews, averageRating: Math.round(averageRating * 10) / 10 });
 });
 
-// POST /api/products/:id/reviews - Submit a review
+// POST /api/products/:id/reviews
 router.post('/:id/reviews', authMiddleware, (req, res) => {
-  const productId = req.params.id;
-  const { rating, title, comment } = req.body;
-  
-  const product = store.products.find(p => p.id === productId);
-  if (!product) {
-    return res.status(404).json({ error: 'Product not found' });
-  }
+  const product = store.products.find(p => p.id === req.params.id);
+  if (!product) return res.status(404).json({ error: 'Product not found' });
 
-  if (!rating || rating < 1 || rating > 5) {
-    return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+  const { rating, title, body } = req.body;
+  if (!rating || !title || !body) {
+    return res.status(400).json({ error: 'rating, title, and body are required' });
   }
 
   const review = {
-    id: `review_${Date.now()}`,
-    productId,
-    userId: req.user.userId,
-    userName: req.user.firstName + ' ' + req.user.lastName,
-    rating,
-    title: title || '',
-    comment: comment || '',
+    id: `rev_${Date.now()}`,
+    productId: req.params.id,
+    userId: req.userId,
+    rating: parseInt(rating),
+    title, body,
     createdAt: new Date().toISOString()
   };
-
-  if (!store.reviews[productId]) {
-    store.reviews[productId] = [];
-  }
-  store.reviews[productId].push(review);
-
+  store.reviews.push(review);
   res.status(201).json({ review });
 });
 

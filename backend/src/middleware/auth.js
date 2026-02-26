@@ -1,39 +1,18 @@
-const jwt = require('jsonwebtoken');
+const store = require('../data/store');
 
-// Simple auth middleware - checks for Bearer token
-const authMiddleware = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
+function authMiddleware(req, res, next) {
+  const authHeader = req.headers['authorization'];
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Authentication required' });
+    return res.status(401).json({ error: 'Unauthorized — missing token' });
   }
-
-  const token = authHeader.substring(7);
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (error) {
-    return res.status(401).json({ error: 'Invalid or expired token' });
+  const token = authHeader.split(' ')[1];
+  const userId = store.tokens[token];
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized — invalid token' });
   }
-};
-
-// Optional auth - adds user to req if token exists, but doesn't require it
-const optionalAuth = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.substring(7);
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = decoded;
-    } catch (error) {
-      // Token invalid but we don't fail, just continue without user
-    }
-  }
-  
+  req.userId = userId;
+  req.user = store.users.find(u => u.id === userId);
   next();
-};
+}
 
-module.exports = { authMiddleware, optionalAuth };
+module.exports = authMiddleware;
