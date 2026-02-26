@@ -88,8 +88,8 @@ export default function ProductDetailPage() {
           </div>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 24 }}>
             <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid var(--border)', borderRadius: 8 }}>
-              <button data-testid="qty-decrement" onClick={() => setQuantity(q => Math.max(1, q - 1))} style={{ padding: '10px 16px', border: 'none', background: 'none', fontSize: 18, cursor: 'pointer' }}>−</button>
-              <input data-testid="qty-input" name="quantity" type="number" value={quantity} onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} style={{ width: 48, textAlign: 'center', border: 'none', fontSize: 16, fontWeight: 600 }} />
+              <button data-testid="qty-decrement" onClick={() => setQuantity(q => q - 1)} style={{ padding: '10px 16px', border: 'none', background: 'none', fontSize: 18, cursor: 'pointer' }}>−</button>
+              <input data-testid="qty-input" name="quantity" type="number" value={quantity} onChange={e => setQuantity(parseInt(e.target.value) || 0)} style={{ width: 48, textAlign: 'center', border: 'none', fontSize: 16, fontWeight: 600 }} />
               {/* BUG-F11: Quantity can exceed stock (e.g., order 999 when only 5 available) */}
               {/* Should be: onClick={() => setQuantity(q => Math.min(q + 1, product.stock))} */}
               <button data-testid="qty-increment" onClick={() => setQuantity(q => q + 1)} style={{ padding: '10px 16px', border: 'none', background: 'none', fontSize: 18, cursor: 'pointer' }}>+</button>
