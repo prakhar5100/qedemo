@@ -1,6 +1,6 @@
 import React from 'react';
 import './StarRating.css';
-import '../styles/StarRating.css';
+import './StarRating.css';
 
 const StarRating = ({ rating, size = 'medium', interactive = false, onRate }) => {
   const stars = [1, 2, 3, 4, 5];
