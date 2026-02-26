@@ -1,0 +1,130 @@
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-xl) 0;
+  flex-wrap: wrap;
+}
+
+.pagination-info {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.pagination-button {
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background-color: var(--bg-white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.pagination-button.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.pagination-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.pagination-ellipsis {
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.pagination-per-page {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.pagination-per-page select {
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-white);
+  color: var(--text-primary);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  transition: all var(--transition-base);
+}
+
+.pagination-per-page select:hover {
+  border-color: var(--primary-color);
+}
+
+.pagination-per-page select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+@media (max-width: 768px) {
+  .pagination {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .pagination-info {
+    text-align: center;
+  }
+  
+  .pagination-controls {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .pagination-buttons {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .pagination-per-page {
+    justify-content: center;
+  }
+}
