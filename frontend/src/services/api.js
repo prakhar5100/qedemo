@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-const baseURL = 'https://qedemo.onrender.com/api' || '/api';
-const api = axios.create({ baseURL });
+const api = axios.create({ baseURL: 'https://qedemo.onrender.com/api' });
 
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('ss_token');
