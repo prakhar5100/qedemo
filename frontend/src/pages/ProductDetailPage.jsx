@@ -40,6 +40,8 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = async () => {
     if (!isAuth) { addToast('Please sign in to add items to cart', 'info'); return; }
+    // BUG-F10: Missing stock check — can add out-of-stock items to cart
+    // Should have: if (product.stock === 0) { addToast('Item out of stock', 'error'); return; }
     try { await addItem(product.id, quantity); addToast(`${product.name} added to cart!`, 'success'); }
     catch { addToast('Failed to add to cart', 'error'); }
   };
@@ -88,6 +90,8 @@ export default function ProductDetailPage() {
             <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid var(--border)', borderRadius: 8 }}>
               <button data-testid="qty-decrement" onClick={() => setQuantity(q => Math.max(1, q - 1))} style={{ padding: '10px 16px', border: 'none', background: 'none', fontSize: 18, cursor: 'pointer' }}>−</button>
               <input data-testid="qty-input" name="quantity" type="number" value={quantity} onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} style={{ width: 48, textAlign: 'center', border: 'none', fontSize: 16, fontWeight: 600 }} />
+              {/* BUG-F11: Quantity can exceed stock (e.g., order 999 when only 5 available) */}
+              {/* Should be: onClick={() => setQuantity(q => Math.min(q + 1, product.stock))} */}
               <button data-testid="qty-increment" onClick={() => setQuantity(q => q + 1)} style={{ padding: '10px 16px', border: 'none', background: 'none', fontSize: 18, cursor: 'pointer' }}>+</button>
             </div>
             <button data-testid={`add-to-cart-${product.id}`} onClick={handleAddToCart} className="btn btn-primary btn-lg" style={{ flex: 1 }}>Add to Cart</button>

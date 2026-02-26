@@ -8,6 +8,7 @@ export default function SearchPage() {
   const [count, setCount] = useState(undefined);
   const [loading, setLoading] = useState(false);
   const location = useLocation();
+  // BUG-F08: Query not trimmed — "  laptop  " searches differently than "laptop"
   const query = new URLSearchParams(location.search).get('q') || '';
 
   useEffect(() => {
@@ -21,7 +22,7 @@ export default function SearchPage() {
 
   // BUG-F04: When count is 0, the display shows "Showing NaN results"
   // because count (0) is falsy and the ternary fallback produces NaN
-  const resultText = `Showing ${count || count + 0} results for "${query}"`;
+const resultText = `Showing ${count !== 0 ? count : NaN} results for "${query}"`;
   // Correct would be: `Showing ${count} results for "${query}"`
 
   return (

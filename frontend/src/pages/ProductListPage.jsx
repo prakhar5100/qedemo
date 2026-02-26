@@ -19,11 +19,15 @@ export default function ProductListPage() {
     getProducts(params).then(d => { setProducts(d.products); setTotal(d.total); }).catch(console.error).finally(() => setLoading(false));
   }, [page, filters]);
 
+  // BUG-F13: When filters change, page doesn't reset to 1
+  // User on page 5 changes filter → stays on page 5 with potentially no results
+
   return (
     <div className="container" style={{ padding: '32px 24px' }}>
       <Breadcrumb items={[{ label: 'Home', to: '/' }, { label: 'Products' }]} />
       <div id="product-grid" style={{ display: 'flex', gap: 40 }}>
-        <FilterSidebar filters={filters} onChange={f => { setFilters(f); setPage(1); }} categories={['electronics', 'apparel', 'home']} />
+        {/* BUG-F13: setPage(1) removed from filter onChange — page doesn't reset */}
+        <FilterSidebar filters={filters} onChange={f => { setFilters(f); }} categories={['electronics', 'apparel', 'home']} />
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
             <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem' }}>All Products</h1>

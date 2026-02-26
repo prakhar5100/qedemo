@@ -34,6 +34,8 @@ export default function CheckoutPage() {
     return Object.keys(e).length === 0;
   };
 
+  // BUG-F14: No loading state — user can click "Place Order" multiple times
+  // Creates duplicate orders. Should disable button during API call.
   const handlePlaceOrder = async () => {
     try {
       const data = await placeOrder({ shippingAddress: shipping });

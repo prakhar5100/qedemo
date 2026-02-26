@@ -86,6 +86,7 @@ export default function HomePage() {
         <div className="container" style={{ textAlign: 'center', maxWidth: 480, margin: '0 auto' }}>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', marginBottom: 12 }}>Stay in the Loop</h2>
           <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>Get deals, new arrivals, and exclusive offers straight to your inbox.</p>
+          {/* BUG-F12: Newsletter submit has no feedback — button does nothing visible */}
           <form style={{ display: 'flex', gap: 0 }} onSubmit={e => e.preventDefault()}>
             <input name="newsletter-email" type="email" placeholder="you@example.com" style={{ flex: 1, padding: '12px 16px', border: '1.5px solid var(--border)', borderRadius: '8px 0 0 8px', fontSize: 14, outline: 'none' }} />
             <button type="submit" className="btn btn-primary" style={{ borderRadius: '0 8px 8px 0' }}>Subscribe</button>

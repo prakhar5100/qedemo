@@ -68,8 +68,9 @@ export default function Navbar() {
           )}
           <Link to="/cart" data-testid="cart-icon" style={{ position: 'relative', padding: '8px', fontSize: 18 }}>
             🛒
+            {/* BUG-F05: Cart badge shows count + 1 (displays 4 when cart has 3 items) */}
             {itemCount > 0 && (
-              <span data-testid="cart-badge" style={{ position: 'absolute', top: 0, right: 0, background: 'var(--accent)', color: '#fff', borderRadius: '50%', width: 18, height: 18, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>{itemCount}</span>
+              <span data-testid="cart-badge" style={{ position: 'absolute', top: 0, right: 0, background: 'var(--accent)', color: '#fff', borderRadius: '50%', width: 18, height: 18, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>{itemCount + 1}</span>
             )}
           </Link>
 

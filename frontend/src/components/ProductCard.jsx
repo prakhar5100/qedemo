@@ -37,7 +37,8 @@ export default function ProductCard({ product }) {
     } catch { addToast('Failed to update wishlist', 'error'); }
   };
 
-  const hasDiscount = product.originalPrice > product.price;
+  // BUG-F06: Shows SALE badge even when prices are equal (>= instead of >)
+  const hasDiscount = product.originalPrice >= product.price;
 
   return (
     <Link to={`/products/${product.id}`} data-testid={`product-card-${product.id}`} style={{ display: 'block', textDecoration: 'none' }}>
@@ -63,7 +64,8 @@ export default function ProductCard({ product }) {
           <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{product.category}</div>
           <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{product.name}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 10 }}>
-            <span className="stars">{'★'.repeat(Math.round(product.rating))}</span>
+            {/* BUG-F09: Math.ceil makes 3.1 rating show 4 stars (should use floor) */}
+            <span className="stars">{'★'.repeat(Math.ceil(product.rating))}</span>
             <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>({product.reviewCount})</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
