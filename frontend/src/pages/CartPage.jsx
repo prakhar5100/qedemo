@@ -33,11 +33,13 @@ export default function CartPage() {
   );
 
   // BUG-F02: Quantity can be set to 0 but item is NOT removed — it stays at qty 0
+  // BUG-F17: Quantity can go negative, showing negative prices (e.g., -$29.99)
   const handleQtyChange = async (productId, val) => {
     const qty = parseInt(val);
     // BUG-F02: Should remove item when qty reaches 0:
     // if (qty <= 0) { await removeItem(productId); return; }
-    await updateItem(productId, qty); // allows qty=0
+    // BUG-F17: No validation to prevent negative quantities
+    await updateItem(productId, qty); // allows qty=0 and negative values
   };
 
   return (
@@ -55,7 +57,8 @@ export default function CartPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid var(--border)', borderRadius: 6 }}>
                     <button data-testid="qty-decrement" onClick={() => handleQtyChange(item.productId, item.quantity - 1)} style={{ padding: '6px 12px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 16 }}>−</button>
-                    <input data-testid="qty-input" name="quantity" type="number" value={item.quantity} onChange={e => handleQtyChange(item.productId, e.target.value)} style={{ width: 40, textAlign: 'center', border: 'none', fontSize: 14, fontWeight: 600 }} min="0" />
+                    {/* BUG-F17: Removed min="0" — allows negative quantities like -5 */}
+                    <input data-testid="qty-input" name="quantity" type="number" value={item.quantity} onChange={e => handleQtyChange(item.productId, e.target.value)} style={{ width: 40, textAlign: 'center', border: 'none', fontSize: 14, fontWeight: 600 }} />
                     <button data-testid="qty-increment" onClick={() => handleQtyChange(item.productId, item.quantity + 1)} style={{ padding: '6px 12px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 16 }}>+</button>
                   </div>
                   <button data-testid={`remove-cart-item-${item.productId}`} onClick={() => removeItem(item.productId)} style={{ fontSize: 13, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Remove</button>

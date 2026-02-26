@@ -671,6 +671,85 @@ const validateShipping = () => {
 
 ---
 
+### BUG-F17: Cart Quantity Can Go Negative
+**Location:** [frontend/src/pages/CartPage.jsx](frontend/src/pages/CartPage.jsx#L35-L42)
+
+**Bug ID:** F17  
+**Severity:** High  
+**Category:** Validation & Logic
+
+**Description:**  
+Cart quantity input has no minimum validation. Users can decrement quantity below 0, resulting in negative quantities (e.g., -5) and negative prices (e.g., -$149.95). The cart subtotal and total also become negative.
+
+**Expected Behavior:**  
+Quantity should never go below 1. When user clicks decrement at quantity 1, item should be removed or quantity should stay at 1.
+
+**Actual Behavior:**  
+- Quantity can be -1, -2, -5, -100, etc.
+- Line item shows negative price: "-$29.99"
+- Cart subtotal becomes negative
+- Total can be negative (user "earns" money by checking out)
+
+**Code Issue:**
+```javascript
+const handleQtyChange = async (productId, val) => {
+  const qty = parseInt(val);
+  // BUG-F17: No validation to prevent negative quantities
+  await updateItem(productId, qty); // allows negative values
+};
+
+// In JSX:
+<input 
+  data-testid="qty-input" 
+  name="quantity" 
+  type="number" 
+  value={item.quantity} 
+  onChange={e => handleQtyChange(item.productId, e.target.value)} 
+  // BUG-F17: Missing min="1" attribute
+  style={{...}} 
+/>
+```
+
+**Test Scenario:**
+1. Add item to cart (e.g., $29.99 product)
+2. Click decrement button multiple times past 0
+3. Quantity shows -1, -2, -3, etc.
+4. Item price displays as "-$29.99", "-$59.98", "-$89.97"
+5. Cart total becomes negative
+
+**Alternative Test:**
+1. Manually type "-10" in quantity input field
+2. Item price shows -$299.90
+3. Cart summary shows negative subtotal
+
+**Fix:**
+```javascript
+const handleQtyChange = async (productId, val) => {
+  const qty = parseInt(val);
+  
+  // Remove item if quantity is 0 or less
+  if (qty <= 0) { 
+    await removeItem(productId); 
+    return; 
+  }
+  
+  await updateItem(productId, qty);
+};
+
+// In JSX:
+<input 
+  data-testid="qty-input" 
+  name="quantity" 
+  type="number" 
+  value={item.quantity} 
+  onChange={e => handleQtyChange(item.productId, e.target.value)} 
+  min="1" // Prevent negative input
+  style={{...}} 
+/>
+```
+
+---
+
 ## Testing Strategy
 
 ### Automated Test Coverage
@@ -682,7 +761,7 @@ For each bug, QE agents should:
 
 ### Test Priority
 - **Critical Severity** (F16): Test immediately - data integrity failure
-- **High Severity** (F03, F10, F11, F14): Test first - data integrity and validation
+- **High Severity** (F03, F10, F11, F14, F17): Test first - data integrity and validation
 - **Medium Severity** (F01, F02, F05, F07, F13, F15): Test second - user experience issues
 - **Low Severity** (F04, F06, F08, F09, F12): Test last - minor display/UX issues
 
@@ -712,14 +791,14 @@ describe('Product Quantity', () => {
 
 ## Bug Statistics
 
-- **Total Bugs:** 16
+- **Total Bugs:** 17
 - **Critical Severity:** 1 (6%)
-- **High Severity:** 4 (25%)
-- **Medium Severity:** 7 (44%)
-- **Low Severity:** 4 (25%)
+- **High Severity:** 5 (29%)
+- **Medium Severity:** 7 (41%)
+- **Low Severity:** 4 (24%)
 
 **By Category:**
-- Validation & Logic: 9 bugs
+- Validation & Logic: 10 bugs
 - Display & Formatting: 5 bugs
 - State Management: 2 bugs
 - User Feedback: 1 bug
