@@ -20,6 +20,7 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
 
   // BUG-F03: Email validation is missing — any string passes
+  // BUG-F16: Validation always returns true — form submits with empty fields
   const validateShipping = () => {
     const e = {};
     if (!shipping.firstName) e.firstName = 'Required';
@@ -31,7 +32,8 @@ export default function CheckoutPage() {
     // BUG-F03: Missing email format validation — should be:
     // if (shipping.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(shipping.email)) e.email = 'Invalid email';
     setErrors(e);
-    return Object.keys(e).length === 0;
+    // BUG-F16: Always returns true regardless of validation errors!
+    return true; // Should be: return Object.keys(e).length === 0;
   };
 
   // BUG-F14: No loading state — user can click "Place Order" multiple times

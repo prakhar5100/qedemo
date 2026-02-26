@@ -9,9 +9,12 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { login, isAuth } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
+
+  // BUG-F15: Missing redirect check — logged-in users can access /login page
+  // Should have: useEffect(() => { if (isAuth) navigate('/'); }, [isAuth, navigate]);
 
   // BUG-F06: When toggling show password, input briefly flashes type="text" before React can update
   // The bug: we unmount/remount the input instead of just changing the type attribute
