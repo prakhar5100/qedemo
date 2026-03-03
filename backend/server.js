@@ -6,6 +6,8 @@ const swaggerDocument = require('./swagger.json');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+
+
 // ── Middleware ───────────────────────────────────────────
 app.use(cors({ origin: 'https://qedemo.vercel.app', credentials: true }));
 app.use(express.json());
@@ -22,7 +24,9 @@ app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api', miscRoutes);
-
+app.get('/swagger.json', (req, res) => {
+  res.json(require('./swagger.json'));
+});
 // ── Health check ─────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
