@@ -1,0 +1,212 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ShopSphere API",
+    "version": "1.0.0",
+    "description": "Full API documentation for ShopSphere backend"
+  },
+  "servers": [
+    { "url": "http://localhost:5000", "description": "Local" },
+    { "url": "https://qedemo.onrender.com", "description": "Production" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" }
+        }
+      }
+    }
+  },
+  "paths": {
+
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Login successful" },
+          "400": { "description": "Missing fields", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }}}},
+          "401": { "description": "Invalid credentials" }
+        }
+      }
+    },
+
+    "/api/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Register user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password", "firstName", "lastName"],
+                "properties": {
+                  "email": { "type": "string" },
+                  "password": { "type": "string" },
+                  "firstName": { "type": "string" },
+                  "lastName": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "User created" },
+          "400": { "description": "Missing fields" }
+        }
+      }
+    },
+
+    "/api/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Get current user",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Current user info" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+
+    "/api/products": {
+      "get": {
+        "tags": ["Products"],
+        "summary": "Get products with filters",
+        "parameters": [
+          { "name": "category", "in": "query", "schema": { "type": "string" }},
+          { "name": "sort", "in": "query", "schema": { "type": "string" }},
+          { "name": "q", "in": "query", "schema": { "type": "string" }},
+          { "name": "limit", "in": "query", "schema": { "type": "integer" }},
+          { "name": "page", "in": "query", "schema": { "type": "integer" }}
+        ],
+        "responses": {
+          "200": { "description": "Product list" }
+        }
+      }
+    },
+
+    "/api/products/{id}": {
+      "get": {
+        "tags": ["Products"],
+        "summary": "Get product by ID",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }}
+        ],
+        "responses": {
+          "200": { "description": "Product details" },
+          "404": { "description": "Product not found" }
+        }
+      }
+    },
+
+    "/api/cart": {
+      "get": {
+        "tags": ["Cart"],
+        "summary": "Get cart",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Cart details" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+
+    "/api/cart/add": {
+      "post": {
+        "tags": ["Cart"],
+        "summary": "Add item to cart",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["productId"],
+                "properties": {
+                  "productId": { "type": "string" },
+                  "quantity": { "type": "integer" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Cart updated" },
+          "404": { "description": "Product not found" }
+        }
+      }
+    },
+
+    "/api/orders": {
+      "get": {
+        "tags": ["Orders"],
+        "summary": "Get user orders",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Orders list" }
+        }
+      },
+      "post": {
+        "tags": ["Orders"],
+        "summary": "Create order",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "201": { "description": "Order created" }
+        }
+      }
+    },
+
+    "/api/orders/{id}": {
+      "get": {
+        "tags": ["Orders"],
+        "summary": "Get order by ID",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }}
+        ],
+        "responses": {
+          "200": { "description": "Order details" },
+          "404": { "description": "Order not found" }
+        }
+      }
+    },
+
+    "/api/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Health check",
+        "responses": {
+          "200": { "description": "API status" }
+        }
+      }
+    }
+  }
+}
