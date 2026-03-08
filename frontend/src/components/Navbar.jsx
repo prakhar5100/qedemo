@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
@@ -10,6 +10,7 @@ export default function Navbar() {
   const [catOpen, setCatOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -91,7 +92,9 @@ export default function Navbar() {
               )}
             </div>
           ) : (
-            <Link to="/login" className="btn btn-primary btn-sm">Sign In</Link>
+            location.pathname !== '/login' && location.pathname !== '/register' && (
+              <Link to="/login" className="btn btn-primary btn-sm">Sign In</Link>
+            )
           )}
         </div>
       </div>
