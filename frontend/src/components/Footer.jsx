@@ -24,9 +24,9 @@ export default function Footer() {
             <div style={{ color: '#fff', fontWeight: 700, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>Company</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <Link to="/about" style={{ fontSize: 14 }}>About Us</Link>
-              <Link to="/careers" style={{ fontSize: 14 }}>Careers</Link>{/* BUG-F08: Goes to 404 */}
-              <Link to="/blog" style={{ fontSize: 14 }}>Blog</Link>{/* BUG-F08: Goes to 404 */}
-              <Link to="/press" style={{ fontSize: 14 }}>Press</Link>
+              {/* <Link to="/careers" style={{ fontSize: 14 }}>Careers</Link> */}{/* BUG-F08: No /careers route — goes to 404 */}
+              {/* <Link to="/blog" style={{ fontSize: 14 }}>Blog</Link> */}{/* BUG-F08: No /blog route — goes to 404 */}
+              {/* <Link to="/press" style={{ fontSize: 14 }}>Press</Link> */}{/* No /press route — goes to 404 */}
               <Link to="/privacy" style={{ fontSize: 14 }}>Privacy Policy</Link>
               <Link to="/terms" style={{ fontSize: 14 }}>Terms of Service</Link>
             </div>
@@ -51,10 +51,10 @@ export default function Footer() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <Link to="/faq" style={{ fontSize: 14 }}>FAQ</Link>
               <Link to="/contact" style={{ fontSize: 14 }}>Contact Us</Link>
-              <Link to="/returns" style={{ fontSize: 14 }}>Return Policy</Link>
-              <Link to="/shipping" style={{ fontSize: 14 }}>Shipping Info</Link>
-              <Link to="/size-guide" style={{ fontSize: 14 }}>Size Guide</Link>
-              <Link to="/order-track" style={{ fontSize: 14 }}>Order Tracking</Link>
+              {/* <Link to="/returns" style={{ fontSize: 14 }}>Return Policy</Link> */}{/* No /returns route — goes to 404 */}
+              {/* <Link to="/shipping" style={{ fontSize: 14 }}>Shipping Info</Link> */}{/* No /shipping route — goes to 404 */}
+              {/* <Link to="/size-guide" style={{ fontSize: 14 }}>Size Guide</Link> */}{/* No /size-guide route — goes to 404 */}
+              {/* <Link to="/order-track" style={{ fontSize: 14 }}>Order Tracking</Link> */}{/* No /order-track route — goes to 404 */}
             </div>
           </div>
 

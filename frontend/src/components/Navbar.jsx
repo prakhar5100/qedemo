@@ -84,6 +84,7 @@ export default function Navbar() {
                   <Link to="/profile" style={{ display: 'block', padding: '8px 14px', fontSize: 14 }}>My Profile</Link>
                   <Link to="/orders" style={{ display: 'block', padding: '8px 14px', fontSize: 14 }}>My Orders</Link>
                   <Link to="/wishlist" style={{ display: 'block', padding: '8px 14px', fontSize: 14 }}>Wishlist</Link>
+                  <Link to="/returns/new" style={{ display: 'block', padding: '8px 14px', fontSize: 14 }}>↩ Returns</Link>
                   <hr style={{ margin: '6px 0', borderColor: 'var(--border)' }} />
                   <button onClick={logout} style={{ width: '100%', textAlign: 'left', padding: '8px 14px', fontSize: 14, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)' }}>Sign Out</button>
                 </div>

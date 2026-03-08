@@ -34,6 +34,8 @@ export const getOrders = () => api.get('/orders').then(r => r.data);
 export const getOrder = (id) => api.get(`/orders/${id}`).then(r => r.data);
 export const placeOrder = (data) => api.post('/orders', data).then(r => r.data);
 export const trackOrder = (id) => api.get(`/orders/${id}/track`).then(r => r.data);
+export const submitReturn = (orderId, data) => api.post(`/orders/${orderId}/return`, data).then(r => r.data);
+export const getMyReturns = () => api.get('/orders/returns/mine').then(r => r.data);
 
 // Auth
 export const login = (email, password) => api.post('/auth/login', { email, password }).then(r => r.data);

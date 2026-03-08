@@ -6,6 +6,15 @@ import ProductCard from '../components/ProductCard';
 export default function HomePage() {
   const [featured, setFeatured] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [showNewsletterSuccess, setShowNewsletterSuccess] = useState(false);
+
+  const handleNewsletterSubmit = (e) => {
+    e.preventDefault();
+    if (!newsletterEmail) return;
+    setShowNewsletterSuccess(true);
+    setNewsletterEmail('');
+  };
 
   useEffect(() => {
     getFeaturedProducts().then(d => setFeatured(d.products)).catch(console.error);
@@ -87,12 +96,56 @@ export default function HomePage() {
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', marginBottom: 12 }}>Stay in the Loop</h2>
           <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>Get deals, new arrivals, and exclusive offers straight to your inbox.</p>
           {/* BUG-F12: Newsletter submit has no feedback — button does nothing visible */}
-          <form style={{ display: 'flex', gap: 0 }} onSubmit={e => e.preventDefault()}>
-            <input name="newsletter-email" type="email" placeholder="you@example.com" style={{ flex: 1, padding: '12px 16px', border: '1.5px solid var(--border)', borderRadius: '8px 0 0 8px', fontSize: 14, outline: 'none' }} />
+          <form style={{ display: 'flex', gap: 0 }} onSubmit={handleNewsletterSubmit}>
+            <input name="newsletter-email" type="email" placeholder="you@example.com" value={newsletterEmail} onChange={e => setNewsletterEmail(e.target.value)} style={{ flex: 1, padding: '12px 16px', border: '1.5px solid var(--border)', borderRadius: '8px 0 0 8px', fontSize: 14, outline: 'none' }} />
             <button type="submit" className="btn btn-primary" style={{ borderRadius: '0 8px 8px 0' }}>Subscribe</button>
           </form>
         </div>
       </section>
+
+      {/* Newsletter Success Dialog */}
+      {showNewsletterSuccess && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="newsletter-success-title"
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(0,0,0,0.55)',
+          }}
+          onClick={() => setShowNewsletterSuccess(false)}
+        >
+          <div
+            style={{
+              background: 'var(--surface, #fff)',
+              borderRadius: 16,
+              padding: '40px 36px',
+              maxWidth: 400,
+              width: '90%',
+              textAlign: 'center',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+              border: '1px solid var(--border)',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ fontSize: 52, marginBottom: 16 }}>🎉</div>
+            <h2 id="newsletter-success-title" style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', marginBottom: 10 }}>
+              You're Subscribed!
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: 15, lineHeight: 1.6, marginBottom: 28 }}>
+              Thanks for signing up. Expect deals, new arrivals, and exclusive offers straight to your inbox.
+            </p>
+            <button
+              className="btn btn-primary"
+              style={{ width: '100%' }}
+              onClick={() => setShowNewsletterSuccess(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

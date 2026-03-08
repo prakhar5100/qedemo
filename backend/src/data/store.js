@@ -10,6 +10,7 @@ const store = {
   carts: {}, // keyed by userId
   wishlists: {}, // keyed by userId
   tokens: {}, // token -> userId
+  returns: [], // return requests
 };
 
 module.exports = store;

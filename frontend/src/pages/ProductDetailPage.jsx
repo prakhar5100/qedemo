@@ -48,6 +48,9 @@ export default function ProductDetailPage() {
 
   const handleReview = async (e) => {
     e.preventDefault();
+    if (reviewForm.rating === 0) {
+      addToast('⭐ No stars selected — submitting with 0 stars', 'info');
+    }
     try {
       await submitReview(id, reviewForm);
       addToast('Review submitted!', 'success');

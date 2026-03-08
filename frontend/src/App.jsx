@@ -37,6 +37,7 @@ function AppContent() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/orders/:id" element={<OrderDetailPage />} />
+          <Route path="/returns/new" element={<ReturnRequestPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/wishlist" element={<WishlistPage />} />
           <Route path="/search" element={<SearchPage />} />

@@ -58,6 +58,7 @@ import { useToast } from '../context/ToastContext';
 export function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const { addToast } = useToast();
 
   const handleSubmit = async (e) => {
@@ -69,6 +70,7 @@ export function ContactPage() {
       if (res.message) { addToast('Message sent!', 'success'); }
       else { addToast('Response missing confirmation', 'info'); } // exposes BUG-B07
       setForm({ name: '', email: '', subject: '', message: '' });
+      setShowSuccess(true);
     } catch { addToast('Failed to send message', 'error'); }
     finally { setLoading(false); }
   };
@@ -92,6 +94,50 @@ export function ContactPage() {
           <button type="submit" className="btn btn-primary btn-lg" disabled={loading}>{loading ? 'Sending…' : 'Send Message'}</button>
         </form>
       </div>
+
+      {/* Success Dialog */}
+      {showSuccess && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="contact-success-title"
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(0,0,0,0.55)',
+          }}
+          onClick={() => setShowSuccess(false)}
+        >
+          <div
+            style={{
+              background: 'var(--surface, #fff)',
+              borderRadius: 16,
+              padding: '40px 36px',
+              maxWidth: 400,
+              width: '90%',
+              textAlign: 'center',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+              border: '1px solid var(--border)',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ fontSize: 52, marginBottom: 16 }}>✉️</div>
+            <h2 id="contact-success-title" style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', marginBottom: 10 }}>
+              Message Sent!
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: 15, lineHeight: 1.6, marginBottom: 28 }}>
+              Thanks for reaching out. We'll get back to you within 24 hours.
+            </p>
+            <button
+              className="btn btn-primary"
+              style={{ width: '100%' }}
+              onClick={() => setShowSuccess(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -204,7 +250,10 @@ export function OrderDetailPage() {
       <Breadcrumb items={[{ label: 'Home', to: '/' }, { label: 'Orders', to: '/orders' }, { label: order.id }]} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
         <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem' }}>Order {order.id}</h1>
-        <StatusBadge status={order.status} orderId={order.id} />
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <StatusBadge status={order.status} orderId={order.id} />
+          <Link to={`/returns/new?orderId=${order.id}`} className="btn btn-secondary" style={{ fontSize: 13 }}>↩ Return Items</Link>
+        </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 32 }}>
         <div>

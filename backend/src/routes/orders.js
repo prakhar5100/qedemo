@@ -65,4 +65,35 @@ router.get('/:id/track', authMiddleware, (req, res) => {
   res.json({ timeline: order.timeline });
 });
 
+// POST /api/orders/:id/return — submit a return request for an order
+router.post('/:id/return', authMiddleware, (req, res) => {
+  const order = store.orders.find(o => o.id === req.params.id);
+  if (!order) return res.status(404).json({ error: 'Order not found' });
+  if (order.userId !== req.userId) return res.status(403).json({ error: 'Forbidden' });
+
+  const { items, reason } = req.body;
+  if (!items || !items.length || !reason) {
+    return res.status(400).json({ error: 'items and reason are required' });
+  }
+
+  const returnRequest = {
+    id: `ret_${Date.now()}`,
+    orderId: order.id,
+    userId: req.userId,
+    items,
+    reason,
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+  };
+
+  store.returns.push(returnRequest);
+  res.status(201).json({ returnRequest });
+});
+
+// GET /api/returns — list return requests for the current user
+router.get('/returns/mine', authMiddleware, (req, res) => {
+  const userReturns = store.returns.filter(r => r.userId === req.userId);
+  res.json({ returns: userReturns });
+});
+
 module.exports = router;
