@@ -16,6 +16,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import OrdersPage from './pages/OrdersPage';
 import SearchPage from './pages/SearchPage';
+import ReturnRequestPage from './pages/ReturnRequestPage';
 import {
   AboutPage, ContactPage, FaqPage, ProfilePage, WishlistPage,
   OrderDetailPage, NotFoundPage, PrivacyPage, TermsPage
