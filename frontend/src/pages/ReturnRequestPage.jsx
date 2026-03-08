@@ -27,7 +27,7 @@ export default function ReturnRequestPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  const { isAuth } = useAuth();
+  const { isAuth, loading: authLoading } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -36,6 +36,7 @@ export default function ReturnRequestPage() {
   const preOrderId = searchParams.get('orderId');
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuth) { navigate('/login'); return; }
     getOrders()
       .then(d => {
@@ -51,7 +52,7 @@ export default function ReturnRequestPage() {
       })
       .catch(() => addToast('Failed to load orders', 'error'))
       .finally(() => setLoading(false));
-  }, [isAuth]);
+  }, [isAuth, authLoading]);
 
   const handleSelectOrder = () => {
     if (!selectedOrderId) { addToast('Please select an order', 'info'); return; }
@@ -83,7 +84,7 @@ export default function ReturnRequestPage() {
     }
   };
 
-  if (loading) return <div className="loader"><div className="spinner" /></div>;
+  if (authLoading || loading) return <div className="loader"><div className="spinner" /></div>;
 
   return (
     <div className="container" style={{ padding: '32px 24px', maxWidth: 680 }}>
